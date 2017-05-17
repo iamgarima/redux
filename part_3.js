@@ -52,19 +52,27 @@ const validateAction = action => {
 
 const createStore = reducer => {
   let state = undefined;
+  let subscribers = [];
   return {
     dispatch: (action) => {
       validateAction(action);
       state = reducer(state, action);
+      subscribers.forEach(handler => handler());
     },
-    getState: () => state
+    getState: () => state,
+    subscribe: handle => {
+      subscribers.push(handle);
+      return () => {
+        subscribers.splice(subscribers.indexOf(handle), 1);
+      };
+    }
   }
 };
 
 const store = createStore(reducer);
-
+store.subscribe(() => {
+  console.log(store.getState());
+})
 store.dispatch(actions[0]);
-console.log(store.getState());
-
 store.dispatch(actions[1]);
-console.log(store.getState());
+
